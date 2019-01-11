@@ -7,6 +7,7 @@ var width = 600;
 var height = 400;
 var updatedCount = 0;
 var flag = true;
+var t = d3.transition().duration(750);
 
 var svg = d3.select("#chart-area")
     .append("svg")
@@ -68,7 +69,8 @@ d3.json("data/revenues.json").then(function(data) {
     console.log(data);
 
     d3.interval(function() {
-        update(data);
+        var newData = flag ? data : data.slice(1);
+        update(newData);
         flag = !flag;
     }, 1000);
 
@@ -96,48 +98,64 @@ function update(data) {
     })]);
 
     var xAxisCall = d3.axisBottom(x);
-    xAxisGroup.call(xAxisCall);
+    xAxisGroup.transition(t).call(xAxisCall);
 
     var yAxisCall = d3.axisLeft(y)
         .tickFormat(function(d) {
             return "$" + d;
         });
-    yAxisGroup.call(yAxisCall);
+    yAxisGroup.transition(t).call(yAxisCall);
 
     // JOIN new data with old elements
     var rectangles = g.selectAll("rect")
-        .data(data);
+        .data(data, function(d) {
+            return d.month;
+        });
 
     //EXIT old elements not present in new data.
-    rectangles.exit().remove();
+    rectangles.exit()
+        .attr("fill", "red")
+        .transition(t)
+        .attr("y", y(0))
+        .attr("height", 0)
+        .remove();
 
     // UPDATE old elements present in new data
-    rectangles
-        .attr("x", function(d) {
-            return x(d.month);
-        })
-        .attr("y", function(d) {
-            return y(d[value]);
-        })
-        .attr("width", x.bandwidth)
-        .attr("height", function(d) {
-            return height - y(d[value]);
-        });
+    // The following was being used until we added the "merge(rectangles)" line 147 which allows for code re-use for Entering and Updating
+    // rectangles.transition(t)
+    //     .attr("x", function(d) {
+    //         return x(d.month);
+    //     })
+    //     .attr("y", function(d) {
+    //         return y(d[value]);
+    //     })
+    //     .attr("width", x.bandwidth)
+    //     .attr("height", function(d) {
+    //         return height - y(d[value]);
+    //     });
 
     // ENTER new elements present in new data
     rectangles.enter()
         .append("rect")
-        .attr("x", function(d) {
+            .attr("x", function(d) {
+                return x(d.month);
+            })
+            .attr("width", x.bandwidth)
+            .attr("fill", "gray")
+            .attr("y", y(0))
+            .attr("height", 0)
+        .merge(rectangles)
+        .transition(t)
+            .attr("x", function(d) {
             return x(d.month);
-        })
-        .attr("y", function(d) {
-            return y(d[value]);
-        })
-        .attr("width", x.bandwidth)
-        .attr("height", function(d) {
-            return height - y(d[value]);
-        })
-        .attr("fill", "gray");
+            })
+            .attr("width", x.bandwidth)
+            .attr("y", function(d) {
+                return y(d[value]);
+            })
+            .attr("height", function(d) {
+                return height - y(d[value]);
+            });
 
 
     // rectangles.enter()
