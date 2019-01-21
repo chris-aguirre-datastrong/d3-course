@@ -32,31 +32,34 @@ g.append("text")
     .attr("transform", "rotate(-90)")
 	.text("Life Expectancy (Years)");
 
-var xAxisGroup  = g.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0, " + height + ")");
+// X Related
+	var xAxisGroup  = g.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0, " + height + ")");
 
-var x = d3.scaleLog()
-    .range([0, width])
-	.domain([300, 150000]);
+	var x = d3.scaleLog()
+		.range([0, width])
+		.domain([300, 150000]);
 
-var xAxisCall = d3.axisBottom(x)
-	.tickValues([400,1000, 2000,4000,20000,40000])
-	.tickFormat(function(d) {
-            return d;
-        });
+	var xAxisCall = d3.axisBottom(x)
+		.tickValues([400,1000, 2000,4000,20000,40000])
+		.tickFormat(function(d) {
+				return d;
+			});
 
-xAxisGroup.call(xAxisCall);
+	xAxisGroup.call(xAxisCall);
 
-var yAxisGroup = g.append("g")
-    .attr("class", "y-axis");
 
-var y = d3.scaleLinear()
-    .range([height, 0])
-	.domain([0, 90]);
+// Y Related
+	var yAxisGroup = g.append("g")
+		.attr("class", "y-axis");
 
-var yAxisCall = d3.axisLeft(y);
-yAxisGroup.call(yAxisCall);
+	var y = d3.scaleLinear()
+		.range([height, 0])
+		.domain([0, 90]);
+
+	var yAxisCall = d3.axisLeft(y);
+	yAxisGroup.call(yAxisCall);
 
 
 d3.json("data/data.json").then(function(data){
@@ -80,6 +83,11 @@ d3.json("data/data.json").then(function(data){
 
     var circles = g.selectAll("circle")
         .data(formattedData[0]);
+
+    // Radius Related
+	var r = d3.scaleLinear()
+		.range([5, 25])
+		.domain([0, 50000000]);
 
     circles.enter()
         .append("circle")
